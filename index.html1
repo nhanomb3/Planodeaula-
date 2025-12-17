@@ -192,8 +192,8 @@
       if (isMobileFriendly()) {
         // ✅ É móvel: oculta splash e redireciona imediatamente
         splash.style.display = 'none';
-        // Redireciona para index.html
-        window.location.href = 'index.html';
+        // Redireciona para indexautorizado.html
+        window.location.href = 'indexautorizado.html';
       } else {
         // ⚠️ É desktop: mostra aviso gentil
         splash.style.display = 'none';

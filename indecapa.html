@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plano de Aula Mz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com ">
+  <link rel="preconnect" href="https://fonts.gstatic.com " crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f0f2ff 0%, #e6f7ff 100%);
+      color: #1a1d28;
+      overflow: hidden;
+    }
+
+    /* Tela de carregamento — neutra e acolhedora */
+    #splash-screen {
+      text-align: center;
+      padding: 20px;
+      max-width: 90%;
+    }
+
+    .splash-logo {
+      font-size: 2.2em;
+      font-weight: 700;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #6c63ff, #4ecdc4);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .splash-icon {
+      font-size: 2.5em;
+      color: #6c63ff;
+      margin-bottom: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .splash-message {
+      font-size: 1.2em;
+      font-weight: 500;
+      color: #2d3246;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .splash-sub {
+      font-size: 0.95em;
+      color: #8a8da0;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(108, 99, 255, 0.2);
+      border-top-color: #6c63ff;
+      border-radius: 50%;
+      margin: 25px auto;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes float { 
+      0%, 100% { transform: translateY(0); } 
+      50% { transform: translateY(-10px); } 
+    }
+
+    /* Tela de aviso (desktop) — gentil, não punitiva */
+    #desktop-message {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+      max-width: 420px;
+    }
+
+    .desktop-icon {
+      font-size: 3.5em;
+      color: #4ecdc4;
+      margin-bottom: 20px;
+    }
+
+    .desktop-title {
+      font-size: 1.5em;
+      font-weight: 700;
+      color: #1a1d28;
+      margin-bottom: 15px;
+    }
+
+    .desktop-text {
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    .note {
+      background: rgba(108, 99, 255, 0.06);
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 0.9em;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ✅ Tela inicial suave e profissional -->
+  <div id="splash-screen">
+    <div class="splash-icon">
+      <i class="fas fa-graduation-cap"></i>
+    </div>
+    <div class="splash-logo">Plano de Aula Mz</div>
+    <div class="splash-message">Carregando recursos educacionais...</div>
+    <div class="splash-sub">Aguarde um momento</div>
+    <div class="spinner"></div>
+  </div>
+
+  <!-- ⚠️ Aviso para desktop (só aparece se for PC) -->
+  <div id="desktop-message">
+    <div class="desktop-icon">
+      <i class="fas fa-mobile-alt"></i>
+    </div>
+    <div class="desktop-title">Versão móvel disponível</div>
+    <p class="desktop-text">
+      Este aplicativo foi projetado para funcionar em <strong>smartphones e tablets</strong>, 
+      garantindo a melhor experiência para professores em campo.
+    </p>
+    <div class="note">
+      📱 Por favor, acesse este link pelo seu celular para baixar o app.
+    </div>
+  </div>
+
+  <!-- Seu conteúdo principal (móvel) — oculto até validação -->
+  <div id="main-content" style="display:none;"></div>
+
+  <script>
+    // 🔒 Proteção discreta (sem alertas, sem efeitos visíveis)
+    (function protect() {
+      // Bloqueia atalhos comuns — silenciosamente
+      const forbiddenKeys = [
+        'F12', 'I', 'J', 'U', 'C'
+      ];
+      
+      document.addEventListener('keydown', e => {
+        if (
+          e.key === 'F12' ||
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+          (e.ctrlKey && e.key === 'U') ||
+          (e.ctrlKey && e.key === 'C' && e.shiftKey)
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      });
+
+      // Bloqueia clique direito
+      document.addEventListener('contextmenu', e => e.preventDefault());
+
+      // Desativa console.log visível (sem apagar, só silencia)
+      if (window.console && window.console.log) {
+        const noop = () => {};
+        console.log = console.info = console.warn = console.error = noop;
+      }
+
+      // Previne 4+ toques (abre devtools em alguns navegadores móveis)
+      document.addEventListener('touchstart', e => {
+        if (e.touches && e.touches.length > 3) e.preventDefault();
+      }, { passive: false });
+    })();
+
+    // 📱 Detecção suave de ambiente
+    function isMobileFriendly() {
+      const ua = navigator.userAgent || '';
+      return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(ua);
+    }
+
+    // 🚀 Inicia após breve delay (simulando carregamento real)
+    setTimeout(() => {
+      const splash = document.getElementById('splash-screen');
+      const desktopMsg = document.getElementById('desktop-message');
+      const main = document.getElementById('main-content');
+
+      if (isMobileFriendly()) {
+        // ✅ É móvel: oculta splash e redireciona imediatamente
+        splash.style.display = 'none';
+        // Redireciona para index.html
+        window.location.href = 'index.html';
+      } else {
+        // ⚠️ É desktop: mostra aviso gentil
+        splash.style.display = 'none';
+        desktopMsg.style.display = 'block';
+      }
+    }, 1200); // 1.2s — tempo realista de "carregamento"
+
+    // 🔧 Função loadAppContent removida, pois não é mais usada
+    // Apenas o redirecionamento ocorre no fluxo móvel.
+  </script>
+
+</body>
+</html>

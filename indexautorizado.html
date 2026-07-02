@@ -235,6 +235,53 @@
       51%, 100% { opacity: 0; }
     }
     
+    /* BANNER DE CONVITE - NOVO ESTILO */
+    .invite-banner {
+      display: none;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin: 20px 0 25px;
+      text-align: center;
+      font-size: 0.95em;
+      color: #2c3e50;
+      border: 2px solid #e67e22;
+      animation: fadeInDown 0.6s ease;
+      box-shadow: 0 4px 15px rgba(230, 126, 34, 0.2);
+    }
+    @keyframes fadeInDown {
+      0% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .invite-banner .banner-icon {
+      font-size: 1.8em;
+      color: #e67e22;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .invite-banner strong {
+      color: #e67e22;
+    }
+    .invite-banner .codigo-display {
+      display: inline-block;
+      background: white;
+      padding: 4px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      color: #e67e22;
+      margin-top: 6px;
+      border: 1px dashed #e67e22;
+      font-size: 1.1em;
+      letter-spacing: 2px;
+    }
+    .invite-banner .sub-text {
+      font-size: 0.8em;
+      color: #7f5a1a;
+      margin-top: 4px;
+      display: block;
+    }
+    
     /* Botão de download */
     .download-section {
       margin: 30px 0;
@@ -544,6 +591,18 @@
         </div>
       </div>
       
+      <!-- BANNER DE CONVITE - NOVO -->
+      <div class="invite-banner" id="inviteBanner">
+        <span class="banner-icon">🎁</span>
+        <div>
+          Você foi convidado por <strong id="invitedByName">um amigo</strong>! 
+          Ao se cadastrar, ganha um bónus de boas-vindas! 
+          <span class="sub-text">
+            Código: <span class="codigo-display" id="codigoDisplay">---</span>
+          </span>
+        </div>
+      </div>
+      
       <!-- Descrição com efeito de máquina de escrever -->
       <div class="app-main">
         <div class="app-description">
@@ -560,8 +619,7 @@
       
       <!-- Botão de download -->
       <div class="download-section">
-        <a href="https://github.com/nhanomb3/Planodeaula-/raw/238efc908040c4934a55c092d27189122c57b6d0/Plano%20Aula%20MZ.apk" 
-           download="PlanoAulaMz.apk" 
+        <a href="#" 
            class="download-btn" 
            id="mainDownload">
           <i class="btn-icon fas fa-rocket"></i>
@@ -575,12 +633,11 @@
         <i class="fas fa-check-circle"></i> Download iniciado. Se não funcionar, verifique as permissões do navegador.
       </div>
       
-      <!-- Link alternativo direto (escondido por padrão, visível se o download falhar) -->
+      <!-- Link alternativo direto -->
       <div class="status-message" id="alternative-download" style="display:none; background:rgba(108, 99, 255, 0.1); border-color:var(--primary); color:var(--primary-dark);">
         <i class="fas fa-external-link-alt"></i> 
         Se o download não iniciou automaticamente, 
-        <a href="https://github.com/nhanomb3/Planodeaula-/raw/238efc908040c4934a55c092d27189122c57b6d0/Plano%20Aula%20MZ.apk" 
-           style="color:var(--primary-dark); font-weight:600; text-decoration:underline;">
+        <a href="#" id="alternativeLink" style="color:var(--primary-dark); font-weight:600; text-decoration:underline;">
           clique aqui para baixar diretamente
         </a>
       </div>
@@ -636,24 +693,218 @@
   </div>
 
   <script>
-    // Função para detectar dispositivo móvel
+    // ============================================
+    // 🔒 PROTEÇÃO
+    // ============================================
+    (function protect() {
+      document.addEventListener('keydown', e => {
+        if (e.key === 'F12' || 
+            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+            (e.ctrlKey && e.key === 'U') || 
+            (e.ctrlKey && e.key === 'C' && e.shiftKey)) {
+          e.preventDefault();
+          return false;
+        }
+      });
+      document.addEventListener('contextmenu', e => e.preventDefault());
+      if (window.console && window.console.log) {
+        const noop = () => {};
+        console.log = console.info = console.warn = console.error = noop;
+      }
+    })();
+
+    // ============================================
+    // 📱 DETECTAR CÓDIGO DE CONVITE
+    // ============================================
+    function getInviteCode() {
+      // Tenta da URL primeiro
+      const urlParams = new URLSearchParams(window.location.search);
+      let code = urlParams.get('ref');
+      
+      // Se não tiver na URL, tenta do localStorage
+      if (!code) {
+        code = localStorage.getItem('invite_code');
+      }
+      
+      // Se não tiver no localStorage, tenta sessionStorage
+      if (!code) {
+        code = sessionStorage.getItem('invite_code');
+      }
+      
+      return code ? code.toUpperCase() : null;
+    }
+
+    // ============================================
+    // 💾 SALVAR CÓDIGO
+    // ============================================
+    function saveInviteCode(code) {
+      if (code) {
+        localStorage.setItem('invite_code', code);
+        sessionStorage.setItem('invite_code', code);
+        document.cookie = `invite_code=${code}; path=/; max-age=86400`;
+        console.log('✅ Código de convite salvo:', code);
+        return true;
+      }
+      return false;
+    }
+
+    // ============================================
+    // 🎨 MOSTRAR BANNER DE CONVITE
+    // ============================================
+    function showInviteBanner(code) {
+      const banner = document.getElementById('inviteBanner');
+      const nameSpan = document.getElementById('invitedByName');
+      const codigoSpan = document.getElementById('codigoDisplay');
+      
+      if (code) {
+        nameSpan.textContent = 'um amigo';
+        codigoSpan.textContent = code;
+        banner.style.display = 'block';
+        
+        // 🔥 Garante que o código está salvo
+        saveInviteCode(code);
+      }
+    }
+
+    // ============================================
+    // 🔗 CONFIGURAR LINK DE DOWNLOAD
+    // ============================================
+    function setupDownloadLink(code) {
+      const downloadBtn = document.getElementById('mainDownload');
+      const alternativeLink = document.getElementById('alternativeLink');
+      const loading = document.getElementById('loading');
+      const statusMessage = document.getElementById('status-message');
+      const alternativeDownload = document.getElementById('alternative-download');
+      
+      // URL base do APK
+      const baseUrl = 'https://github.com/nhanomb3/Planodeaula-/raw/238efc908040c4934a55c092d27189122c57b6d0/Plano%20Aula%20MZ.apk';
+      
+      // 🔥 Adiciona o código à URL se existir
+      let downloadUrl = baseUrl;
+      if (code) {
+        downloadUrl += `?ref=${code}`;
+      }
+      
+      // Atualiza os links
+      downloadBtn.href = downloadUrl;
+      alternativeLink.href = downloadUrl;
+      
+      // Evento de clique
+      downloadBtn.addEventListener('click', function(e) {
+        // Track download click
+        gtag('event', 'download_click', {
+          file_name: 'PlanoDeAulaMz.apk',
+          file_size: '3.0MB',
+          source: 'github_raw',
+          has_invite: !!code
+        });
+        
+        // Mostra loading
+        loading.style.display = 'flex';
+        statusMessage.style.display = 'none';
+        alternativeDownload.style.display = 'none';
+        
+        // Mostra mensagem de status após 1.5s
+        setTimeout(() => {
+          gtag('event', 'download_started', {
+            file_name: 'PlanoDeAulaMz.apk',
+            source: 'github_raw',
+            has_invite: !!code
+          });
+          
+          statusMessage.style.display = 'block';
+          loading.style.display = 'none';
+          
+          // Mostra link alternativo após 3s
+          setTimeout(() => {
+            alternativeDownload.style.display = 'block';
+          }, 3000);
+          
+          // Oculta após 8s
+          setTimeout(() => {
+            statusMessage.style.display = 'none';
+            alternativeDownload.style.display = 'none';
+          }, 8000);
+        }, 1500);
+      });
+    }
+
+    // ============================================
+    // 📱 DETECÇÃO DE DISPOSITIVO
+    // ============================================
     function isMobile() {
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
 
-    // Mostra o conteúdo correto com base no tipo de dispositivo
+    // ============================================
+    // 📞 FUNÇÕES DE SUPORTE
+    // ============================================
+    function openDialer(phoneNumber) {
+      gtag('event', 'support_call', {
+        phone_number: phoneNumber,
+        support_type: phoneNumber === getSupportNumber(1) ? 'support_1' : 'support_2'
+      });
+      
+      // Efeito visual
+      const target = event.currentTarget;
+      target.style.transform = 'scale(0.95)';
+      setTimeout(() => { target.style.transform = ''; }, 200);
+      
+      window.location.href = `tel:${phoneNumber}`;
+    }
+
+    function getSupportNumber(id) {
+      const numbers = { 1: '876393961', 2: '834890828' };
+      return numbers[id] || '';
+    }
+
+    function formatPhoneNumber(number) {
+      if (number.length === 9) {
+        return number.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+      }
+      return number;
+    }
+
+    // ============================================
+    // 🚀 INICIALIZAÇÃO
+    // ============================================
     document.addEventListener('DOMContentLoaded', () => {
+      // 1. DETECTA CÓDIGO DE CONVITE
+      const refCode = getInviteCode();
+      
+      // 2. MOSTRA BANNER SE TIVER CÓDIGO
+      if (refCode) {
+        showInviteBanner(refCode);
+        console.log('✅ Código de convite ativo:', refCode);
+      } else {
+        console.log('ℹ️ Nenhum código de convite detectado');
+      }
+      
+      // 3. VERIFICA SE É MÓVEL
       if (isMobile()) {
         document.getElementById('mobile-content').style.display = 'block';
+        
+        // 4. CONFIGURA LINK DE DOWNLOAD
+        setupDownloadLink(refCode);
+        
+        // 5. INICIA ANIMAÇÕES
         startTitleAnimation();
         startDescriptionTypewriter();
-        setupDownloadTracking();
+        
+        // 6. FORMATA NÚMEROS DE SUPORTE
+        const num1 = document.getElementById('support-number-1');
+        const num2 = document.getElementById('support-number-2');
+        if (num1) num1.textContent = formatPhoneNumber(getSupportNumber(1));
+        if (num2) num2.textContent = formatPhoneNumber(getSupportNumber(2));
+        
       } else {
         document.getElementById('desktop-warning').style.display = 'block';
       }
     });
 
-    // Animação do título
+    // ============================================
+    // 🎬 ANIMAÇÕES
+    // ============================================
     function startTitleAnimation() {
       const titleElement = document.getElementById('dynamic-title');
       const fullText = 'Plano de Aula Mz';
@@ -668,11 +919,9 @@
           setTimeout(typeWriter, 100);
         }
       };
-      
       typeWriter();
     }
 
-    // Animação de máquina de escrever para a descrição
     function startDescriptionTypewriter() {
       const descriptionElement = document.getElementById('typewriter-text');
       const cursorElement = document.getElementById('cursor');
@@ -684,150 +933,34 @@
       let typingSpeed = 50;
       
       function type() {
-        // Texto atual a ser exibido
         const currentText = descriptionText.substring(0, charIndex);
         descriptionElement.textContent = currentText;
         
-        // Controla a velocidade de digitação
         let speed = typingSpeed;
         
         if (isDeleting) {
           speed = typingSpeed / 2;
           charIndex--;
-          
-          // Quando terminar de apagar, começa a escrever novamente
           if (charIndex === 0) {
             isDeleting = false;
-            // Pausa antes de começar a digitar novamente
             speed = 1000;
           }
         } else {
           charIndex++;
-          
-          // Quando terminar de escrever, começa a apagar
           if (charIndex === descriptionText.length + 1) {
             isDeleting = true;
-            // Pausa antes de começar a apagar
             speed = 2000;
           }
         }
         
-        // Esconde o cursor quando estiver apagando
         cursorElement.style.opacity = isDeleting ? '0.5' : '1';
-        
-        // Continua a animação
         setTimeout(type, speed);
       }
       
-      // Inicia a animação após um breve delay
       setTimeout(type, 1000);
     }
 
-    // Função para abrir o discador
-    function openDialer(phoneNumber) {
-      // Track support call attempt
-      gtag('event', 'support_call', {
-        phone_number: phoneNumber,
-        support_type: phoneNumber === getSupportNumber(1) ? 'support_1' : 'support_2'
-      });
-      
-      // Efeito visual no card clicado
-      event.currentTarget.style.transform = 'scale(0.95)';
-      setTimeout(() => {
-        event.currentTarget.style.transform = '';
-      }, 200);
-      
-      // Abre o discador
-      window.location.href = `tel:${phoneNumber}`;
-    }
-
-    // Função para obter números de suporte
-    function getSupportNumber(id) {
-      const numbers = {
-        1: '876393961',
-        2: '834890828'
-      };
-      return numbers[id] || '';
-    }
-
-    // Adiciona formatação aos números de suporte
-    document.addEventListener('DOMContentLoaded', () => {
-      if (isMobile()) {
-        const num1 = document.getElementById('support-number-1');
-        const num2 = document.getElementById('support-number-2');
-        
-        if (num1) num1.textContent = formatPhoneNumber(getSupportNumber(1));
-        if (num2) num2.textContent = formatPhoneNumber(getSupportNumber(2));
-      }
-    });
-
-    // Formata número de telefone
-    function formatPhoneNumber(number) {
-      if (number.length === 9) {
-        return number.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
-      }
-      return number;
-    }
-
-    // Configura o rastreamento de download
-    function setupDownloadTracking() {
-      const downloadBtn = document.getElementById('mainDownload');
-      const loadingElement = document.getElementById('loading');
-      const statusMessage = document.getElementById('status-message');
-      const alternativeDownload = document.getElementById('alternative-download');
-      
-      if (downloadBtn) {
-        downloadBtn.addEventListener('click', (e) => {
-          // Track download click
-          gtag('event', 'download_click', {
-            file_name: 'PlanoDeAulaMz.apk',
-            file_size: '3.0MB',
-            source: 'github_raw'
-          });
-          
-          // Mostra o efeito de carregamento
-          loadingElement.style.display = 'flex';
-          statusMessage.style.display = 'none';
-          alternativeDownload.style.display = 'none';
-          
-          // Track successful download initiation após 1.5 segundos
-          setTimeout(() => {
-            gtag('event', 'download_started', {
-              file_name: 'PlanoDeAulaMz.apk',
-              source: 'github_raw'
-            });
-            
-            // Mostra mensagem de status
-            statusMessage.style.display = 'block';
-            loadingElement.style.display = 'none';
-            
-            // Mostra link alternativo após 3 segundos (caso o download não tenha iniciado)
-            setTimeout(() => {
-              alternativeDownload.style.display = 'block';
-            }, 3000);
-            
-            // Oculta as mensagens após 8 segundos
-            setTimeout(() => {
-              statusMessage.style.display = 'none';
-              alternativeDownload.style.display = 'none';
-            }, 8000);
-          }, 1500);
-        });
-      }
-      
-      // Rastreia cliques no link alternativo
-      const altLink = document.querySelector('#alternative-download a');
-      if (altLink) {
-        altLink.addEventListener('click', () => {
-          gtag('event', 'alternative_download_click', {
-            file_name: 'PlanoDeAulaMz.apk',
-            reason: 'primary_download_failed'
-          });
-        });
-      }
-    }
-
-    // Dica no console
+    // Mensagem no console
     if (isMobile()) {
       console.log('%c📱 Plano de Aula Mz 📱', 'color: #6c63ff; font-size: 16px; font-weight: bold;');
       console.log('Aplicativo educativo para professores moçambicanos');

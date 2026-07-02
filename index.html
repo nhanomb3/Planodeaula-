@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Plano de Aula Mz</title>
+  <title>Plano de Aula Mz - Download</title>
   <link rel="preconnect" href="https://fonts.googleapis.com ">
   <link rel="preconnect" href="https://fonts.gstatic.com " crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,7 +21,6 @@
       overflow: hidden;
     }
 
-    /* Tela de carregamento — neutra e acolhedora */
     #splash-screen {
       text-align: center;
       padding: 20px;
@@ -74,7 +73,6 @@
       50% { transform: translateY(-10px); } 
     }
 
-    /* Tela de aviso (desktop) — gentil, não punitiva */
     #desktop-message {
       display: none;
       text-align: center;
@@ -108,11 +106,47 @@
       font-size: 0.9em;
       color: #333;
     }
+
+    /* Banner de convite - estilo bonito */
+    .invite-banner {
+      display: none;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      border-radius: 12px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 0.95em;
+      color: #2c3e50;
+      border: 2px solid #e67e22;
+      animation: fadeInDown 0.5s ease;
+    }
+    @keyframes fadeInDown {
+      0% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .invite-banner i {
+      color: #e67e22;
+      margin-right: 8px;
+    }
+    .invite-banner strong {
+      color: #e67e22;
+    }
+    .invite-banner .codigo {
+      display: inline-block;
+      background: white;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-family: monospace;
+      color: #e67e22;
+      margin-top: 4px;
+      border: 1px dashed #e67e22;
+    }
   </style>
 </head>
 <body>
 
-  <!-- ✅ Tela inicial suave e profissional -->
+  <!-- Tela de carregamento -->
   <div id="splash-screen">
     <div class="splash-icon">
       <i class="fas fa-graduation-cap"></i>
@@ -123,7 +157,7 @@
     <div class="spinner"></div>
   </div>
 
-  <!-- ⚠️ Aviso para desktop (só aparece se for PC) -->
+  <!-- Aviso para desktop -->
   <div id="desktop-message">
     <div class="desktop-icon">
       <i class="fas fa-mobile-alt"></i>
@@ -138,16 +172,14 @@
     </div>
   </div>
 
-  <!-- Seu conteúdo principal (móvel) — oculto até validação -->
   <div id="main-content" style="display:none;"></div>
 
   <script>
-    // 🔒 Proteção discreta (sem alertas, sem efeitos visíveis)
+    // ============================================
+    // 🔒 PROTEÇÃO (silenciosa)
+    // ============================================
     (function protect() {
-      // Bloqueia atalhos comuns — silenciosamente
-      const forbiddenKeys = [
-        'F12', 'I', 'J', 'U', 'C'
-      ];
+      const forbiddenKeys = ['F12', 'I', 'J', 'U', 'C'];
       
       document.addEventListener('keydown', e => {
         if (
@@ -162,47 +194,94 @@
         }
       });
 
-      // Bloqueia clique direito
       document.addEventListener('contextmenu', e => e.preventDefault());
 
-      // Desativa console.log visível (sem apagar, só silencia)
       if (window.console && window.console.log) {
         const noop = () => {};
         console.log = console.info = console.warn = console.error = noop;
       }
 
-      // Previne 4+ toques (abre devtools em alguns navegadores móveis)
       document.addEventListener('touchstart', e => {
         if (e.touches && e.touches.length > 3) e.preventDefault();
       }, { passive: false });
     })();
 
-    // 📱 Detecção suave de ambiente
+    // ============================================
+    // 📱 DETECTAR CÓDIGO DE CONVITE NA URL
+    // ============================================
+    function detectInviteCode() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get('ref');
+      if (ref && ref.length >= 4) {
+        return ref.toUpperCase();
+      }
+      return null;
+    }
+
+    // ============================================
+    // 💾 SALVAR CÓDIGO NO LOCALSTORAGE (vários lugares)
+    // ============================================
+    function saveInviteCode(code) {
+      if (code) {
+        // 🔥 Salva em múltiplos lugares para garantir
+        localStorage.setItem('invite_code', code);
+        sessionStorage.setItem('invite_code', code);
+        document.cookie = `invite_code=${code}; path=/; max-age=86400`;
+        
+        console.log('✅ Código de convite salvo no localStorage:', code);
+        return true;
+      }
+      return false;
+    }
+
+    // ============================================
+    // 📱 DETECÇÃO DE DISPOSITIVO
+    // ============================================
     function isMobileFriendly() {
       const ua = navigator.userAgent || '';
       return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(ua);
     }
 
-    // 🚀 Inicia após breve delay (simulando carregamento real)
-    setTimeout(() => {
+    // ============================================
+    // 🚀 INICIALIZAÇÃO PRINCIPAL
+    // ============================================
+    function init() {
       const splash = document.getElementById('splash-screen');
       const desktopMsg = document.getElementById('desktop-message');
-      const main = document.getElementById('main-content');
 
+      // 1. DETECTA CÓDIGO DE CONVITE NA URL
+      const refCode = detectInviteCode();
+      
+      // 2. SALVA CÓDIGO NO LOCALSTORAGE (se existir)
+      if (refCode) {
+        saveInviteCode(refCode);
+      }
+
+      // 3. VERIFICA SE É DISPOSITIVO MÓVEL
       if (isMobileFriendly()) {
-        // ✅ É móvel: oculta splash e redireciona imediatamente
+        // ✅ É móvel: oculta splash e redireciona para download
         splash.style.display = 'none';
-        // Redireciona para indexautorizado.html
-        window.location.href = 'indexautorizado.html';
+        
+        // 🔥 Se tem código de convite, passa para o indexautorizado.html
+        let url = 'indexautorizado.html';
+        if (refCode) {
+          url += `?ref=${refCode}`;
+        }
+        
+        // Pequeno delay para garantir que o localStorage foi salvo
+        setTimeout(() => {
+          window.location.href = url;
+        }, 300);
+        
       } else {
         // ⚠️ É desktop: mostra aviso gentil
         splash.style.display = 'none';
         desktopMsg.style.display = 'block';
       }
-    }, 1200); // 1.2s — tempo realista de "carregamento"
+    }
 
-    // 🔧 Função loadAppContent removida, pois não é mais usada
-    // Apenas o redirecionamento ocorre no fluxo móvel.
+    // Inicia após 1.2s (simulando carregamento)
+    setTimeout(init, 1200);
   </script>
 
 </body>
